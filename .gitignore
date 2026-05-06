@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+data/processed/
+data/references/
+data/voice_profile/
+data/config/
+outputs/
+vendor/
+.DS_Store
+node_modules/
+.vercel/

@@ -1,0 +1,15 @@
+{
+  "name": "audio-drama-studio",
+  "version": "1.0.0",
+  "description": "AI Voice Production Studio",
+  "main": "index.html",
+  "dependencies": {
+    "openai": "^4.0.0"
+  },
+  "devDependencies": {
+    "vercel": "^32.0.0"
+  },
+  "scripts": {
+    "start": "python openvoice_server.py"
+  }
+}

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio Drama Studio | AI Voice Production</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="topbar">
+    <h1>ボイス生成スタジオ</h1>
+    <div class="toolbar">
+      <button id="aiButton" class="primary">✨ AI台本生成</button>
+      <button id="apiKeyButton" class="ghost">🔑 APIキー</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <!-- Left Sidebar: Configuration & Tools -->
+    <aside class="panel">
+      <section>
+        <h2>1. 台本設定</h2>
+        <label>
+          制作モード
+          <select id="contentModeSelect">
+            <option value="solo">一人用（ナレーション）</option>
+            <option value="multi">複数人用（対談・劇）</option>
+          </select>
+        </label>
+        <label>
+          台本データ (CSV形式: ID,タイプ,セリフ,キャラ,ボイス,ページ)
+          <textarea id="scriptText" rows="12" placeholder="CSVを入力またはAI生成をクリック"></textarea>
+        </label>
+        <div class="toolbar">
+          <button id="sampleButton">サンプル</button>
+          <button id="parseButton">台本を確認</button>
+          <button id="downloadCsvButton">CSV保存</button>
+          <button id="batchGenerateButton" class="primary">🚀 全行を一括生成</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>2. ボイスクローン</h2>
+        <p id="openVoiceStatus" class="status">サーバー確認中...</p>
+        <label class="consent">
+          <input id="consentInput" type="checkbox" />
+          <span>本人の声、または許諾済み音声のみ使用</span>
+        </label>
+        <label>
+          参照音声（10秒以上推奨）
+          <input id="voiceFileInput" type="file" accept="audio/*" />
+        </label>
+        <div class="toolbar">
+          <button id="recordButton">⏺️ 録音</button>
+          <button id="stopRecordButton" disabled>⏹️ 停止</button>
+          <span id="recordTimer" class="record-timer" hidden>0秒</span>
+        </div>
+        <audio id="referencePreview" controls hidden></audio>
+        <div id="audioQualityCheck" class="quality-check" hidden></div>
+        <label>
+          プロファイル名
+          <input id="profileNameInput" type="text" placeholder="例: 自分の声" value="default" />
+        </label>
+        <button id="cloneButton" class="primary wide">声を登録</button>
+        <div id="profileList" class="profile-list"></div>
+      </section>
+
+      <section>
+        <h2>3. 音声生成・試聴</h2>
+        <label>
+          テスト用テキスト
+          <textarea id="ttsText" rows="3" placeholder="個別に試したい文章"></textarea>
+        </label>
+        <div class="toolbar">
+          <select id="languageSelect">
+            <option value="JP">日本語</option>
+            <option value="EN_NEWEST">英語</option>
+            <option value="ZH">中国語</option>
+            <option value="KR">韓国語</option>
+          </select>
+          <select id="registeredVoiceSelect">
+            <option value="clone">登録済み (default)</option>
+            <option value="base-jp">無料: 日本語</option>
+            <option value="base-en">無料: 英語</option>
+            <option value="base-zh">無料: 中国語</option>
+            <option value="base-kr">無料: 韓国語</option>
+          </select>
+          <button id="previewVoiceButton" class="ghost">▶ 試聴</button>
+        </div>
+        <button id="openVoiceGenerateButton" class="primary wide">単発生成</button>
+        <div id="generatedAudioList" class="generated-audio-list"></div>
+        <audio id="generatedAudio" controls hidden></audio>
+        <a id="downloadAudioLink" class="download-link" hidden>音声を保存</a>
+      </section>
+
+      <section>
+        <h2>4. ブラウザ音声 (プレビュー)</h2>
+        <div class="toolbar">
+          <label style="flex:1">速度 <input id="rateInput" type="range" min="0.7" max="1.3" value="1" step="0.05" /></label>
+          <label style="flex:1">高さ <input id="pitchInput" type="range" min="0.7" max="1.3" value="1" step="0.05" /></label>
+        </div>
+        <select id="voiceSelect"></select>
+        <div class="toolbar">
+          <button id="playAllButton" class="primary wide">全て再生</button>
+          <button id="stopButton" class="danger">停止</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>5. 生成履歴</h2>
+        <button id="refreshHistoryButton" class="ghost wide">履歴を更新</button>
+        <div id="historyList" class="history-list"></div>
+      </section>
+    </aside>
+
+    <!-- Main Content: Script Visualization & Editing -->
+    <section class="lines-panel">
+      <div class="panel-head">
+        <div>
+          <h2 style="font-size: 1.2rem; color: var(--text);">6. 台本プレビュー & 実行</h2>
+          <p id="lineSummary" class="hint">台本を確認するとここにカードが表示されます</p>
+        </div>
+        <div id="batchActionArea" class="toolbar" hidden>
+          <button id="playAllClonedButton" class="primary">🎵 クローン音声で連続再生</button>
+          <button id="clearButton" class="ghost">クリア</button>
+        </div>
+      </div>
+      
+      <div id="characterVoiceMap" class="quality-check" style="margin: 20px 0;" hidden></div>
+      <div id="lineList" class="line-list"></div>
+    </section>
+  </main>
+
+  <!-- Dialogs -->
+  <dialog id="apiDialog">
+    <div class="dialog-head">
+      <h2>OpenAI API設定</h2>
+    </div>
+    <form method="dialog">
+      <div class="dialog-body">
+        <p class="hint">台本生成に使用します。Vercelデプロイ時は環境変数 <code>OPENAI_API_KEY</code> を設定してください。</p>
+        <input id="apiKeyInput" type="password" placeholder="sk-..." />
+        <label>
+          保存方式
+          <select id="apiStorageModeSelect">
+            <option value="browser">ブラウザに保存</option>
+            <option value="file">ローカルファイルに保存</option>
+            <option value="memory">保存しない</option>
+          </select>
+        </label>
+        <label id="apiFilePathLabel" hidden>
+          保存先パス
+          <input id="apiFilePathInput" type="text" placeholder="D:\keys\gemini.key" />
+        </label>
+        <label>
+          OpenVoiceサーバーURL
+          <input id="backendUrlInput" type="text" placeholder="http://127.0.0.1:5180" value="http://127.0.0.1:5180" />
+          <span class="hint">外部公開時はトンネルURL（https://...）を入力してください。</span>
+        </label>
+      </div>
+      <div class="dialog-actions">
+        <button id="removeKeyButton" type="button" class="danger">キー削除</button>
+        <button value="cancel" class="ghost">キャンセル</button>
+        <button id="saveKeyButton" value="default" class="primary">設定を保存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="aiDialog">
+    <div class="dialog-head">
+      <h2>AI台本ジェネレーター</h2>
+    </div>
+    <form id="aiForm">
+      <div class="dialog-body">
+        <label>
+          登場人物
+          <input id="charactersInput" placeholder="司会者, 専門家..." />
+        </label>
+        <label>
+          キーワード・テーマ
+          <textarea id="promptInput" rows="5" placeholder="例: 最新のAIについて、二人が驚きながら話す対談"></textarea>
+        </label>
+        <label class="consent">
+          <input id="autoGenerateCheck" type="checkbox" />
+          <span>生成後、そのまま音声作成を開始する</span>
+        </label>
+      </div>
+      <div class="dialog-actions">
+        <button id="closeAiButton" type="button" class="ghost">閉じる</button>
+        <button type="submit" class="primary">台本を生成する</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
