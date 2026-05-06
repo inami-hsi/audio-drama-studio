@@ -790,24 +790,36 @@ function initEvents() {
     const f = e.target.files?.[0]; if (!f) return; setReferenceAudio(f, f.name);
   });
 
-  $("consentInput").addEventListener("change", () => {
-    const isChecked = $("consentInput").checked;
-    const recordingStep = $("recordingStep");
-    if (isChecked) {
-      recordingStep.classList.remove("disabled");
-    } else {
-      recordingStep.classList.add("disabled");
-      $("saveStep").classList.add("disabled");
-    }
+  // Voice Clone Workflow: Consent Check
+  const consentInput = $("consentInput");
+  if (consentInput) {
+    consentInput.addEventListener("change", () => {
+      const isChecked = consentInput.checked;
+      console.log("Consent checked:", isChecked);
+      const recordingStep = $("recordingStep");
+      const saveStep = $("saveStep");
+      
+      if (isChecked) {
+        if (recordingStep) recordingStep.classList.remove("disabled");
+      } else {
+        if (recordingStep) recordingStep.classList.add("disabled");
+        if (saveStep) saveStep.classList.add("disabled");
+      }
+    });
+  }
+
+  $("recordButton").addEventListener("click", () => {
+    console.log("Recording started...");
+    startRecording().catch((e) => showToast(e.message || String(e)));
   });
 
-  $("recordButton").addEventListener("click", () => startRecording().catch((e) => showToast(e.message || String(e))));
   $("stopRecordButton").addEventListener("click", async () => {
+    console.log("Stopping recording and checking quality...");
     await stopRecording();
-    // After recording, check quality and enable next step if OK
     const isQualityOk = await checkAudioQuality(state.referenceBlob);
     if (isQualityOk) {
-      $("saveStep").classList.remove("disabled");
+      const saveStep = $("saveStep");
+      if (saveStep) saveStep.classList.remove("disabled");
       showToast("録音が完了しました。Step 3へ進んでください。");
     } else {
       showToast("録音が短すぎるか、品質が不十分です。もう一度録音してください。");
@@ -821,7 +833,7 @@ function initEvents() {
       setOpenVoiceStatus(d.message || "声を登録しました", "ready"); 
       showToast("ボイスクローンを登録しました！"); 
       // Reset flow
-      $("consentInput").checked = false;
+      consentInput.checked = false;
       $("recordingStep").classList.add("disabled");
       $("saveStep").classList.add("disabled");
       $("audioQualityCheck").hidden = true;
