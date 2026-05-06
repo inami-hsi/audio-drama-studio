@@ -786,10 +786,6 @@ function initEvents() {
     loadScriptFromEditor();
   });
 
-  $("voiceFileInput").addEventListener("change", (e) => {
-    const f = e.target.files?.[0]; if (!f) return; setReferenceAudio(f, f.name);
-  });
-
   // Voice Clone Workflow: Consent Check
   const consentInput = $("consentInput");
   if (consentInput) {
