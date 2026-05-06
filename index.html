@@ -55,8 +55,8 @@
         </div>
 
         <div id="recordingStep" class="workflow-step disabled">
-          <h3>Step 2: 音声の録音</h3>
-          <p class="hint">以下の文章を、自然なトーンで10秒以上読んでください：</p>
+          <h3>Step 2: 音声の用意</h3>
+          <p class="hint">録音するか、10秒以上の音声ファイルを選択してください：</p>
           <div class="sample-script-box">
             「こんにちは。これは私の声をAIでクローンするためのテスト録音です。最新のテクノロジーを使って、より豊かな表現ができるようになることを楽しみにしています。」
           </div>
@@ -64,6 +64,10 @@
             <button id="recordButton" class="primary">⏺️ 録音開始</button>
             <button id="stopRecordButton" disabled>⏹️ 終了</button>
             <span id="recordTimer" class="record-timer" hidden>0秒</span>
+          </div>
+          <div class="file-upload-area">
+            <p class="hint">またはファイルを選択：</p>
+            <input id="voiceFileInput" type="file" accept="audio/*" />
           </div>
           <audio id="referencePreview" controls hidden class="wide"></audio>
           <div id="audioQualityCheck" class="quality-check" hidden></div>

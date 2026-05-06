@@ -342,6 +342,41 @@ function renderProfiles(profiles) {
   });
 }
 
+function updateVoiceSelect(profiles) {
+  const sel = $("registeredVoiceSelect");
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = "";
+  
+  // Custom profiles
+  profiles.forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name; opt.textContent = `登録済み: ${name}`;
+    sel.append(opt);
+  });
+
+  // Built-in voices
+  const builtIn = [
+    { id: "base-jp", name: "無料: 日本語" },
+    { id: "base-en", name: "無料: 英語" },
+    { id: "base-zh", name: "無料: 中国語" },
+    { id: "base-kr", name: "無料: 韓国語" }
+  ];
+  builtIn.forEach(v => {
+    const opt = document.createElement("option");
+    opt.value = v.id; opt.textContent = v.name;
+    sel.append(opt);
+  });
+
+  if (current) sel.value = current;
+
+  // Update voiceOptions for Character Map
+  voiceOptions.length = 0;
+  profiles.forEach(p => voiceOptions.push(p));
+  ["Female_1", "Male_1", "base-jp", "base-en", "base-zh", "base-kr"].forEach(v => voiceOptions.push(v));
+  renderCharacterMap();
+}
+
 async function deleteProfile(name) {
   if (!confirm(`プロファイル '${name}' を削除しますか？`)) return;
   try {
@@ -786,15 +821,24 @@ function initEvents() {
     loadScriptFromEditor();
   });
 
+  $("voiceFileInput").addEventListener("change", async (e) => {
+    const f = e.target.files?.[0]; 
+    if (!f) return; 
+    setReferenceAudio(f, f.name);
+    const isQualityOk = await checkAudioQuality(state.referenceBlob);
+    if (isQualityOk) {
+      $("saveStep").classList.remove("disabled");
+      showToast("ファイルの読み込みが完了しました。Step 3へ進んでください。");
+    }
+  });
+
   // Voice Clone Workflow: Consent Check
   const consentInput = $("consentInput");
   if (consentInput) {
     consentInput.addEventListener("change", () => {
       const isChecked = consentInput.checked;
-      console.log("Consent checked:", isChecked);
       const recordingStep = $("recordingStep");
       const saveStep = $("saveStep");
-      
       if (isChecked) {
         if (recordingStep) recordingStep.classList.remove("disabled");
       } else {
@@ -804,18 +848,12 @@ function initEvents() {
     });
   }
 
-  $("recordButton").addEventListener("click", () => {
-    console.log("Recording started...");
-    startRecording().catch((e) => showToast(e.message || String(e)));
-  });
-
+  $("recordButton").addEventListener("click", () => startRecording().catch((e) => showToast(e.message || String(e))));
   $("stopRecordButton").addEventListener("click", async () => {
-    console.log("Stopping recording and checking quality...");
     await stopRecording();
     const isQualityOk = await checkAudioQuality(state.referenceBlob);
     if (isQualityOk) {
-      const saveStep = $("saveStep");
-      if (saveStep) saveStep.classList.remove("disabled");
+      $("saveStep").classList.remove("disabled");
       showToast("録音が完了しました。Step 3へ進んでください。");
     } else {
       showToast("録音が短すぎるか、品質が不十分です。もう一度録音してください。");
@@ -828,6 +866,8 @@ function initEvents() {
       const d = await uploadReferenceVoice(); 
       setOpenVoiceStatus(d.message || "声を登録しました", "ready"); 
       showToast("ボイスクローンを登録しました！"); 
+      // Refresh profiles immediately
+      loadProfiles();
       // Reset flow
       consentInput.checked = false;
       $("recordingStep").classList.add("disabled");
