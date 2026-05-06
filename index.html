@@ -43,28 +43,41 @@
       </section>
 
       <section>
-        <h2>2. ボイスクローン</h2>
+        <h2>2. ボイスクローン登録</h2>
         <p id="openVoiceStatus" class="status">サーバー確認中...</p>
-        <label class="consent">
-          <input id="consentInput" type="checkbox" />
-          <span>本人の声、または許諾済み音声のみ使用</span>
-        </label>
-        <label>
-          参照音声（10秒以上推奨）
-          <input id="voiceFileInput" type="file" accept="audio/*" />
-        </label>
-        <div class="toolbar">
-          <button id="recordButton">⏺️ 録音</button>
-          <button id="stopRecordButton" disabled>⏹️ 停止</button>
-          <span id="recordTimer" class="record-timer" hidden>0秒</span>
+        
+        <div class="workflow-step">
+          <h3>Step 1: 同意と確認</h3>
+          <label class="consent-box">
+            <input id="consentInput" type="checkbox" />
+            <span>私はこの音声の権利者であり、AI学習への利用に同意します。</span>
+          </label>
         </div>
-        <audio id="referencePreview" controls hidden></audio>
-        <div id="audioQualityCheck" class="quality-check" hidden></div>
-        <label>
-          プロファイル名
-          <input id="profileNameInput" type="text" placeholder="例: 自分の声" value="default" />
-        </label>
-        <button id="cloneButton" class="primary wide">声を登録</button>
+
+        <div id="recordingStep" class="workflow-step disabled">
+          <h3>Step 2: 音声の録音</h3>
+          <p class="hint">以下の文章を、自然なトーンで10秒以上読んでください：</p>
+          <div class="sample-script-box">
+            「こんにちは。これは私の声をAIでクローンするためのテスト録音です。最新のテクノロジーを使って、より豊かな表現ができるようになることを楽しみにしています。」
+          </div>
+          <div class="toolbar">
+            <button id="recordButton" class="primary">⏺️ 録音開始</button>
+            <button id="stopRecordButton" disabled>⏹️ 終了</button>
+            <span id="recordTimer" class="record-timer" hidden>0秒</span>
+          </div>
+          <audio id="referencePreview" controls hidden class="wide"></audio>
+          <div id="audioQualityCheck" class="quality-check" hidden></div>
+        </div>
+
+        <div id="saveStep" class="workflow-step disabled">
+          <h3>Step 3: 名前を付けて保存</h3>
+          <label>
+            プロファイル名
+            <input id="profileNameInput" type="text" placeholder="例: 自分の声" value="default" />
+          </label>
+          <button id="cloneButton" class="primary wide">声をAIに登録する</button>
+        </div>
+
         <div id="profileList" class="profile-list"></div>
       </section>
 

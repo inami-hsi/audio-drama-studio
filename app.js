@@ -790,14 +790,45 @@ function initEvents() {
     const f = e.target.files?.[0]; if (!f) return; setReferenceAudio(f, f.name);
   });
 
+  $("consentInput").addEventListener("change", () => {
+    const isChecked = $("consentInput").checked;
+    const recordingStep = $("recordingStep");
+    if (isChecked) {
+      recordingStep.classList.remove("disabled");
+    } else {
+      recordingStep.classList.add("disabled");
+      $("saveStep").classList.add("disabled");
+    }
+  });
+
   $("recordButton").addEventListener("click", () => startRecording().catch((e) => showToast(e.message || String(e))));
-  $("stopRecordButton").addEventListener("click", stopRecording);
+  $("stopRecordButton").addEventListener("click", async () => {
+    await stopRecording();
+    // After recording, check quality and enable next step if OK
+    const isQualityOk = await checkAudioQuality(state.referenceBlob);
+    if (isQualityOk) {
+      $("saveStep").classList.remove("disabled");
+      showToast("録音が完了しました。Step 3へ進んでください。");
+    } else {
+      showToast("録音が短すぎるか、品質が不十分です。もう一度録音してください。");
+    }
+  });
 
   $("cloneButton").addEventListener("click", async () => {
     const btn = $("cloneButton"); btn.disabled = true; btn.textContent = "登録中...";
-    try { const d = await uploadReferenceVoice(); setOpenVoiceStatus(d.message || "声を登録しました", "ready"); showToast("声を登録しました"); }
+    try { 
+      const d = await uploadReferenceVoice(); 
+      setOpenVoiceStatus(d.message || "声を登録しました", "ready"); 
+      showToast("ボイスクローンを登録しました！"); 
+      // Reset flow
+      $("consentInput").checked = false;
+      $("recordingStep").classList.add("disabled");
+      $("saveStep").classList.add("disabled");
+      $("audioQualityCheck").hidden = true;
+      $("referencePreview").hidden = true;
+    }
     catch (e) { showToast(e.message || String(e)); }
-    finally { btn.disabled = false; btn.textContent = "声を登録"; }
+    finally { btn.disabled = false; btn.textContent = "声をAIに登録する"; }
   });
 
   $("openVoiceGenerateButton").addEventListener("click", async () => {

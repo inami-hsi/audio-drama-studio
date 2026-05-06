@@ -373,18 +373,69 @@ dialog::backdrop {
   to { transform: translateY(0); opacity: 1; }
 }
 
-.hint {
-  font-size: 0.75rem;
-  color: var(--muted);
-  font-style: italic;
+/* --- Workflow Steps --- */
+.workflow-step {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
 }
 
-/* --- Utilities --- */
-.wide { width: 100%; }
-.compact { padding: 4px 10px; font-size: 0.75rem; }
-.hidden { display: none !important; }
+.workflow-step h3 {
+  font-size: 0.8rem;
+  color: var(--accent);
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+}
 
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--line); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+.workflow-step.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+  filter: grayscale(1);
+}
+
+.consent-box {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #fff;
+  padding: 10px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.consent-box input[type="checkbox"] {
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.sample-script-box {
+  background: var(--bg);
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  border-left: 4px solid var(--accent);
+  margin-bottom: 16px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.status-item span.ok { color: var(--ok); }
+.status-item span.error { color: var(--danger); }
+.status-item span.warn { color: #f59e0b; }
