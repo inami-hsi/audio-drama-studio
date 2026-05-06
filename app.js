@@ -408,19 +408,36 @@ async function uploadReferenceVoice() {
   if (!state.referenceBlob) throw new Error("参照音声をアップロードまたは録音してください。");
   
   const profileName = $("profileNameInput").value.trim() || "default";
+  const backendUrl = getBackendUrl().replace(/\/$/, ""); // 末尾のスラッシュを削除
 
   const form = new FormData();
-  form.append("voice", state.referenceBlob, state.referenceFileName || "reference.webm");
+  // 拡張子をバックエンドの処理に合わせて明示的に指定
+  const fileName = state.referenceFileName || "reference.webm";
+  form.append("voice", state.referenceBlob, fileName);
   form.append("profileName", profileName);
 
-  const response = await fetch(`${getBackendUrl()}/api/clone`, {
-    method: "POST",
-    body: form,
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "声の登録に失敗しました。");
-  loadProfiles();
-  return data;
+  console.log("Uploading to:", `${backendUrl}/api/clone`, "Profile:", profileName);
+
+  try {
+    const response = await fetch(`${backendUrl}/api/clone`, {
+      method: "POST",
+      body: form,
+      // Note: FormDataの場合はContent-Typeヘッダーを自分でセットしてはいけません（ブラウザが境界線を引くため）
+    });
+
+    const data = await response.json().catch(() => ({ error: "サーバーから無効なレスポンスが返されました。" }));
+    
+    if (!response.ok) {
+      throw new Error(data.error || `サーバーエラー (${response.status})`);
+    }
+
+    console.log("Clone success:", data);
+    loadProfiles();
+    return data;
+  } catch (e) {
+    console.error("Upload error:", e);
+    throw e;
+  }
 }
 
 // --- Split Text ---
